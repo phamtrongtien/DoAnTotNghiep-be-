@@ -87,7 +87,41 @@ const loginUser = (userLogin) => {
         }
     });
 };
+
+const updateUser = (id, data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Đảm bảo tìm theo `_id` thay vì `id`
+            const checkUser = await User.findById(id);
+            console.log('checkUser', checkUser);
+            if (!checkUser) {
+                return resolve({
+                    status: 'ERR',
+                    message: 'User not found'
+                });
+            }
+
+            // Cập nhật người dùng nếu tìm thấy
+            const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+
+            console.log("updatedUser", updatedUser)
+            resolve({
+                status: 'Ok',
+                message: 'User updated successfully',
+                data: updatedUser
+            });
+
+            resolve({
+                status: 'Ok',
+                message: 'Success',
+            });
+        } catch (e) {
+            reject(e);  // Nếu có lỗi, trả về lỗi
+        }
+    });
+};
 module.exports = {
     createUser,
-    loginUser
+    loginUser,
+    updateUser
 };

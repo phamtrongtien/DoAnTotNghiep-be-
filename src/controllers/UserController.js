@@ -75,7 +75,30 @@ const loginUser = async (req, res) => {
     }
 };
 
+const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id
+        const data = req.body
+        if (!userId) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'userId is required'
+            });
+        }
+        console.log('userId', userId)
+        // Gọi hàm loginUser từ UserService và truyền req.body
+        const result = await UserService.updateUser(userId, data);
+
+        return res.status(200).json(result); // Trả về kết quả đăng nhập
+    } catch (e) {
+        return res.status(500).json({
+            message: e.message // Chỉ trả về thông điệp lỗi
+        });
+    }
+};
+
 module.exports = {
     createUser,
-    loginUser
+    loginUser,
+    updateUser
 };

@@ -1,23 +1,27 @@
 const User = require('../models/UserModel');
+const bcrypt = require("bcrypt");
+const { genneralAccessToken, genneralRefreshToken } = require('./JwtService');
+const { charsets } = require('mime');
 
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
         const { name, email, password, phone } = newUser; // Chỉ lấy các trường cần thiết
 
         try {
-            const checkUser = await User.findOne({
-                email: email
-            })
+            const checkUser = await User.findOne({ email: email });
             if (checkUser !== null) {
                 resolve({
-                    status: 'oke',
-                    message: "the email is already"
-                })
+                    status: 'ERR',  // Chỉnh sửa ở đây
+                    message: "The email is already registered"
+                });
             } else {
+                const hash = bcrypt.hashSync(password, 10);  // Sử dụng password từ newUser
+                console.log('hash', hash);
+
                 const createUser = await User.create({
                     name,
                     email,
-                    password,
+                    password: hash,
                     phone // Không cần confirmpassword
                 });
 
@@ -29,13 +33,61 @@ const createUser = (newUser) => {
                     });
                 }
             }
-
         } catch (e) {
             reject(e);  // Nếu có lỗi, trả về lỗi
         }
     });
 };
 
+const loginUser = (userLogin) => {
+    return new Promise(async (resolve, reject) => {
+        // Kiểm tra xem userLogin có tồn tại không
+        if (!userLogin) {
+            return reject(new Error("User login data is missing."));
+        }
+
+        const { email, password } = userLogin; // Chỉ lấy các trường cần thiết
+
+        try {
+            const checkUser = await User.findOne({ email });
+            if (!checkUser) {
+                return resolve({
+                    status: 'ERR',
+                    message: "The user is not defined"
+                });
+            }
+
+            const comparePassword = bcrypt.compareSync(password, checkUser.password);
+
+
+            if (!comparePassword) {
+                return resolve({
+                    status: 'ERR', // Đổi từ 'ok' thành 'ERR'
+                    message: 'The password is incorrect'
+                });
+            }
+            const access_token = await genneralAccessToken({
+                id: checkUser.id,
+                isAdmin: checkUser.isAdmin
+            })
+            const refresh_token = await genneralRefreshToken({
+                id: checkUser.id,
+                isAdmin: checkUser.isAdmin
+            })
+
+            console.log('access_token', access_token)
+            resolve({
+                status: 'Ok',
+                message: 'Success',
+                access_token,
+                refresh_token
+            });
+        } catch (e) {
+            reject(e);  // Nếu có lỗi, trả về lỗi
+        }
+    });
+};
 module.exports = {
-    createUser
+    createUser,
+    loginUser
 };

@@ -11,17 +11,17 @@ const createUser = async (req, res) => {
 
         // Kiểm tra các trường dữ liệu
         if (!name || !email || !password || !confirmpassword || !phone) {
-            return res.status(400).json({ // Thay đổi status về 400 cho lỗi đầu vào
+            return res.status(400).json({
                 status: 'ERR',
                 message: 'The input required'
             });
         } else if (!isCheckEmail) {
-            return res.status(400).json({ // Thay đổi status về 400 cho lỗi đầu vào
+            return res.status(400).json({
                 status: 'ERR',
                 message: 'The input is not a valid email'
             });
         } else if (password !== confirmpassword) {
-            return res.status(400).json({ // Thay đổi status về 400 cho lỗi đầu vào
+            return res.status(400).json({
                 status: 'ERR',
                 message: 'The password is not equal to confirmpassword'
             });
@@ -34,12 +34,48 @@ const createUser = async (req, res) => {
 
         return res.status(200).json(result); // Trả về kết quả tạo user
     } catch (e) {
-        return res.status(500).json({ // Thay đổi status về 500 cho lỗi server
+        return res.status(500).json({
+            message: e.message // Chỉ trả về thông điệp lỗi
+        });
+    }
+};
+
+const loginUser = async (req, res) => {
+    try {
+        console.log(req.body);
+        const { email, password } = req.body; // Chỉ cần email và password
+
+        // Kiểm tra định dạng email
+        const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        const isCheckEmail = reg.test(email);
+
+        // Kiểm tra các trường dữ liệu
+        if (!email || !password) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Email and password are required'
+            });
+        } else if (!isCheckEmail) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'The input is not a valid email'
+            });
+        }
+
+        console.log('isCheckEmail', isCheckEmail);
+
+        // Gọi hàm loginUser từ UserService và truyền req.body
+        const result = await UserService.loginUser(req.body);
+
+        return res.status(200).json(result); // Trả về kết quả đăng nhập
+    } catch (e) {
+        return res.status(500).json({
             message: e.message // Chỉ trả về thông điệp lỗi
         });
     }
 };
 
 module.exports = {
-    createUser
+    createUser,
+    loginUser
 };

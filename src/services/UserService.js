@@ -120,8 +120,80 @@ const updateUser = (id, data) => {
         }
     });
 };
+
+const deleteUser = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Kiểm tra xem người dùng có tồn tại hay không
+            const checkUser = await User.findById(id);
+            console.log('checkUser', checkUser);
+            if (!checkUser) {
+                return resolve({
+                    status: 'ERR',
+                    message: 'User not found'
+                });
+            }
+
+            // Xóa người dùng nếu tìm thấy
+            const deletedUser = await User.findByIdAndDelete(id);  // Không cần data hoặc { new: true }
+            console.log('deletedUser', deletedUser);
+
+            resolve({
+                status: 'Ok',
+                message: 'User deleted successfully',
+            });
+        } catch (e) {
+            reject(e);  // Nếu có lỗi, trả về lỗi
+        }
+    });
+};
+
+const getAllUser = async () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Lấy tất cả người dùng từ cơ sở dữ liệu
+            const allUsers = await User.find();
+            resolve({
+                status: 'Ok',
+                message: 'Successfully retrieved all users',
+                data: allUsers
+            });
+        } catch (e) {
+            reject(e);  // Nếu có lỗi, trả về lỗi
+        }
+    });
+};
+
+const getDetailUser = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Kiểm tra xem người dùng có tồn tại hay không
+            const user = await User.findById(id);
+            console.log('checkUser', user);
+            if (!user) {
+                return resolve({
+                    status: 'ERR',
+                    message: 'User not found'
+                });
+            }
+
+
+            resolve({
+                status: 'Ok',
+                message: 'User successfully',
+                data: user
+            });
+        } catch (e) {
+            reject(e);  // Nếu có lỗi, trả về lỗi
+        }
+    });
+};
 module.exports = {
     createUser,
     loginUser,
-    updateUser
+    updateUser,
+    getAllUser,
+    deleteUser,
+    getDetailUser
+
 };

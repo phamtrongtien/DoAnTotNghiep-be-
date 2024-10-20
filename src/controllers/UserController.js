@@ -1,5 +1,5 @@
 const UserService = require('../services/UserService');
-
+const JwtService = require('../services/JwtService');
 const createUser = async (req, res) => {
     try {
         console.log(req.body);
@@ -153,11 +153,46 @@ const getDetailUser = async (req, res) => {
     }
 };
 
+const refreshToken = async (req, res) => {
+    try {
+        // Kiểm tra nếu không có token trong headers
+        const authHeader = req.headers.token;
+        if (!authHeader) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Token is required'
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Invalid token format'
+            });
+        }
+
+        // Gọi hàm refreshTokenJwtService từ JwtService để làm mới token
+        const result = await JwtService.refreshTokenJwtService(token);
+
+        // Trả về kết quả sau khi làm mới token
+        return res.status(200).json(result);
+    } catch (e) {
+        // Trả về thông báo lỗi nếu có lỗi trong quá trình xử lý
+        return res.status(500).json({
+            status: 'ERR',
+            message: e.message
+        });
+    }
+};
+
+
 module.exports = {
     createUser,
     loginUser,
     updateUser,
     deleteUser,
     getAllUser,
-    getDetailUser
+    getDetailUser,
+    refreshToken
 };

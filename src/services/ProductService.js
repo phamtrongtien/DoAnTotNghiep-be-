@@ -122,15 +122,51 @@ const getDetailProduct = (id) => {
     });
 };
 
-const getAllDetailProduct = () => {
+const getAllDetailProduct = (limit = 8, page = 0, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Lấy tất cả sản phẩm
-            const products = await Product.find({});
+            // Lấy tổng số sản phẩm
+            const totalProduct = await Product.countDocuments(); // Nên sử dụng countDocuments thay vì count
+            if (filter) {
+                const label = filter[0];
+                console.log(label)
+                const allProductFilter = await Product.find({ [label]: { '$regex': `.*${filter[1]}.*`, '$options': 'i' } }).limit(limit).skip(page * limit)
+                resolve({
+                    status: 'OK',
+                    data: allProductFilter,
+                    total: totalProduct,
+                    pageCurrent: Number(page + 1), // Trang hiện tại
+                    totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
+                });
+            }
+            if (sort) {
+                const objectSort = {
+
+                }
+                objectSort[sort[1]] = sort[0];
+                const allProductSort = await Product.find()
+                    .limit(limit)
+                    .skip(page * limit)
+                    .sort(objectSort);
+                resolve({
+                    status: 'OK',
+                    data: allProductSort,
+                    total: totalProduct,
+                    pageCurrent: Number(page + 1), // Trang hiện tại
+                    totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
+                });
+            }
+            // Tính số sản phẩm bỏ qua dựa trên số trang và giới hạn
+            // Điều chỉnh skip dựa trên trang hiện tại
+            const allProduct = await Product.find().limit(limit).skip(page * limit);
             resolve({
                 status: 'OK',
-                data: products
+                data: allProduct,
+                total: totalProduct,
+                pageCurrent: Number(page + 1), // Trang hiện tại
+                totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
             });
+
         } catch (error) {
             reject({
                 status: 'ERR',
@@ -139,6 +175,7 @@ const getAllDetailProduct = () => {
         }
     });
 };
+
 
 module.exports = {
     createProduct,

@@ -93,8 +93,9 @@ const getDetailProduct = async (req, res) => {
 
 const getAllDetailProduct = async (req, res) => {
     try {
+        const { limit, page, sort, filter } = req.query
         // Gọi hàm getAllDetailProduct từ ProductService
-        const result = await ProductService.getAllDetailProduct();
+        const result = await ProductService.getAllDetailProduct(Number(limit) || 8, Number(page) || 0, sort, filter);
 
         return res.status(200).json(result); // Trả về danh sách tất cả sản phẩm
     } catch (e) {

@@ -66,6 +66,12 @@ const loginUser = async (req, res) => {
 
         // Gọi hàm loginUser từ UserService và truyền req.body
         const result = await UserService.loginUser(req.body);
+        const { refresh_token, ...newResult } = result;
+        res.cookie('refresh_token', refresh_token, {
+            HttpOnly: true,
+            Secure: process.env.NODE_ENV === 'production',
+            SameSite: 'Lax'
+        });
 
         return res.status(200).json(result); // Trả về kết quả đăng nhập
     } catch (e) {
@@ -154,31 +160,43 @@ const getDetailUser = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
+
     try {
-        // Kiểm tra nếu không có token trong headers
-        const authHeader = req.headers.token;
-        if (!authHeader) {
+        // Lấy token trực tiếp từ cookie
+        const token = req.cookies.refresh_token;
+
+        if (!token) {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'Token is required'
             });
         }
 
-        const token = authHeader.split(' ')[1];
-        if (!token) {
-            return res.status(400).json({
-                status: 'ERR',
-                message: 'Invalid token format'
-            });
-        }
-
-        // Gọi hàm refreshTokenJwtService từ JwtService để làm mới token
+        // Gọi hàm làm mới token từ JwtService
         const result = await JwtService.refreshTokenJwtService(token);
 
         // Trả về kết quả sau khi làm mới token
         return res.status(200).json(result);
     } catch (e) {
-        // Trả về thông báo lỗi nếu có lỗi trong quá trình xử lý
+        // Xử lý lỗi
+        return res.status(500).json({
+            status: 'ERR',
+            message: e.message
+        });
+    }
+};
+
+const logoutUser = async (req, res) => {
+
+    try {
+        res.clearCookie('refresh_token');
+
+        return res.status(200).json({
+            status: 'oke',
+            message: 'logout success'
+        });
+    } catch (e) {
+        // Xử lý lỗi
         return res.status(500).json({
             status: 'ERR',
             message: e.message
@@ -194,5 +212,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailUser,
-    refreshToken
+    refreshToken,
+    logoutUser
 };

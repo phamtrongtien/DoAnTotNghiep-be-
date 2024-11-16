@@ -164,27 +164,30 @@ const getAllUser = async () => {
     });
 };
 
-const getDetailUser = (id) => {
+const getDetailUser = async (id) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Kiểm tra xem người dùng có tồn tại hay không
             const user = await User.findById(id);
-            console.log('checkUser', user);
             if (!user) {
                 return resolve({
                     status: 'ERR',
-                    message: 'User not found'
+                    message: 'Người dùng không tồn tại'
                 });
             }
 
-
             resolve({
                 status: 'Ok',
-                message: 'User successfully',
+                message: 'Lấy thông tin người dùng thành công',
                 data: user
             });
         } catch (e) {
-            reject(e);  // Nếu có lỗi, trả về lỗi
+            // Nếu có lỗi khi truy vấn, trả về lỗi
+            reject({
+                status: 'ERR',
+                message: 'Đã xảy ra lỗi khi lấy thông tin người dùng',
+                error: e.message
+            });
         }
     });
 };

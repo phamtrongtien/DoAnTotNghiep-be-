@@ -6,8 +6,9 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     isAdmin: { type: Boolean, default: false, required: true },
     phone: { type: Number, required: true },
-    access_token: { type: String, required: false },  // Không bắt buộc
-    refresh_token: { type: String, required: false },  // Không bắt buộc
+    address: { type: String, require: true },
+    avatar: { type: String },
+
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

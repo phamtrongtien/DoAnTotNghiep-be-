@@ -1,41 +1,59 @@
 const Product = require('../models/ProductModel');
 
-const createProduct = (newProduct) => {
-    return new Promise(async (resolve, reject) => {
-        const { name, image, type, price, countInStock, rating, description } = newProduct;
+const createProduct = async (newProduct) => {
+    const { name, image, type, price, countInStock, rating, description, selled, discount } = newProduct;
 
-        try {
-            // Kiểm tra xem sản phẩm có tồn tại không
-            const checkProduct = await Product.findOne({ name });
+    try {
+        // Kiểm tra xem sản phẩm có tồn tại không
+        const checkProduct = await Product.findOne({ name });
 
-            if (checkProduct !== null) {
-                return resolve({
-                    status: 'ERR',
-                    message: "The product name is already registered"
-                });
-            }
-
-            // Tạo sản phẩm mới
-            const createdProduct = await Product.create({
-                name, image, type, price, countInStock, rating, description
-            });
-
-            // Trả về kết quả tạo thành công
-            if (createdProduct) {
-                resolve({
-                    status: 'OK',
-                    message: 'Product created successfully',
-                    data: createdProduct
-                });
-            }
-        } catch (e) {
-            reject({
+        if (checkProduct) {
+            return {
                 status: 'ERR',
-                message: e.message // Trả về thông điệp lỗi
-            });
+                message: "The product name is already registered"
+            };
         }
-    });
+
+        // Kiểm tra giá trị của price và rating
+        if (price < 0) {
+            return {
+                status: 'ERR',
+                message: "Price must be a positive number"
+            };
+        }
+
+        if (rating < 1 || rating > 5) {
+            return {
+                status: 'ERR',
+                message: "Rating must be between 1 and 5"
+            };
+        }
+
+        // Tạo sản phẩm mới
+        const createdProduct = new Product({
+            name, image, type, price, countInStock, rating, description, selled, discount
+        });
+
+        // Lưu vào cơ sở dữ liệu
+        await createdProduct.save();
+
+        // Trả về kết quả tạo thành công
+        return {
+            status: 'OK',
+            message: 'Product created successfully',
+            data: createdProduct
+        };
+
+    } catch (e) {
+        console.error('Error creating product:', e);  // Log lỗi để dễ dàng debug
+        return {
+            status: 'ERR',
+            message: e.message || 'Internal Server Error' // Trả về thông điệp lỗi
+        };
+    }
 };
+
+
 const updateProduct = (id, updatedProduct) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -60,7 +78,9 @@ const updateProduct = (id, updatedProduct) => {
                     price: updatedProduct.price,
                     countInStock: updatedProduct.countInStock,
                     rating: updatedProduct.rating,
-                    description: updatedProduct.description
+                    description: updatedProduct.description,
+                    discount: updatedProduct.discount,
+                    selled: updatedProduct.selled
                 },
                 { new: true } // Trả về dữ liệu sau khi update
             );
@@ -122,60 +142,92 @@ const getDetailProduct = (id) => {
     });
 };
 
-const getAllDetailProduct = (limit = 8, page = 0, sort, filter) => {
+// const getAllDetailProduct = (limit = 8, page = 0, sort, filter) => {
+//     return new Promise(async (resolve, reject) => {
+//         try {
+//             // Lấy tổng số sản phẩm
+//             const totalProduct = await Product.countDocuments(); // Nên sử dụng countDocuments thay vì count
+//             if (filter) {
+//                 const label = filter[0];
+//                 console.log(label)
+//                 const allProductFilter = await Product.find({ [label]: { '$regex': `.*${filter[1]}.*`, '$options': 'i' } }).limit(limit).skip(page * limit)
+//                 resolve({
+//                     status: 'OK',
+//                     data: allProductFilter,
+//                     total: totalProduct,
+//                     pageCurrent: Number(page + 1), // Trang hiện tại
+//                     totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
+//                 });
+//             }
+//             if (sort) {
+//                 const objectSort = {
+
+//                 }
+//                 objectSort[sort[1]] = sort[0];
+//                 const allProductSort = await Product.find()
+//                     .limit(limit)
+//                     .skip(page * limit)
+//                     .sort(objectSort);
+//                 resolve({
+//                     status: 'OK',
+//                     data: allProductSort,
+//                     total: totalProduct,
+//                     pageCurrent: Number(page + 1), // Trang hiện tại
+//                     totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
+//                 });
+//             }
+//             // Tính số sản phẩm bỏ qua dựa trên số trang và giới hạn
+//             // Điều chỉnh skip dựa trên trang hiện tại
+//             const allProduct = await Product.find().limit(limit).skip(page * limit);
+//             resolve({
+//                 status: 'OK',
+//                 data: allProduct,
+//                 total: totalProduct,
+//                 pageCurrent: Number(page + 1), // Trang hiện tại
+//                 totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
+//             });
+
+//         } catch (error) {
+//             reject({
+//                 status: 'ERR',
+//                 message: error.message
+//             });
+//         }
+//     });
+// };
+
+const getAllDetailProduct = (limit, page = 0, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Lấy tổng số sản phẩm
-            const totalProduct = await Product.countDocuments(); // Nên sử dụng countDocuments thay vì count
+            const query = {};
             if (filter) {
-                const label = filter[0];
-                console.log(label)
-                const allProductFilter = await Product.find({ [label]: { '$regex': `.*${filter[1]}.*`, '$options': 'i' } }).limit(limit).skip(page * limit)
-                resolve({
-                    status: 'OK',
-                    data: allProductFilter,
-                    total: totalProduct,
-                    pageCurrent: Number(page + 1), // Trang hiện tại
-                    totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
-                });
+                query[filter[0]] = { '$regex': `.*${filter[1]}.*`, '$options': 'i' };
             }
-            if (sort) {
-                const objectSort = {
 
-                }
-                objectSort[sort[1]] = sort[0];
-                const allProductSort = await Product.find()
-                    .limit(limit)
-                    .skip(page * limit)
-                    .sort(objectSort);
-                resolve({
-                    status: 'OK',
-                    data: allProductSort,
-                    total: totalProduct,
-                    pageCurrent: Number(page + 1), // Trang hiện tại
-                    totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
-                });
-            }
-            // Tính số sản phẩm bỏ qua dựa trên số trang và giới hạn
-            // Điều chỉnh skip dựa trên trang hiện tại
-            const allProduct = await Product.find().limit(limit).skip(page * limit);
+            const sortOptions = sort ? { [sort[1]]: sort[0] } : {};
+
+            // Nếu không có limit, chỉ lấy tất cả sản phẩm phù hợp
+            const totalProduct = await Product.countDocuments(query);
+            const allProduct = await Product.find(query)
+                .sort(sortOptions)
+                .limit(limit || totalProduct) // Nếu limit không tồn tại, lấy toàn bộ sản phẩm
+                .skip(page * (limit || totalProduct)); // Tương tự cho skip
+
             resolve({
                 status: 'OK',
                 data: allProduct,
                 total: totalProduct,
-                pageCurrent: Number(page + 1), // Trang hiện tại
-                totalPage: Math.ceil(totalProduct / limit) // Tổng số trang
+                pageCurrent: Number(page + 1),
+                totalPage: Math.ceil(totalProduct / (limit || totalProduct)), // Tính tổng số trang chính xác
             });
-
         } catch (error) {
             reject({
                 status: 'ERR',
-                message: error.message
+                message: error.message,
             });
         }
     });
 };
-
 
 module.exports = {
     createProduct,

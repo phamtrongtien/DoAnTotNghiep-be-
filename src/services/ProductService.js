@@ -228,12 +228,30 @@ const getAllDetailProduct = (limit, page = 0, sort, filter) => {
         }
     });
 };
+const getAllTypeProduct = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const allTypeProduct = await Product.distinct('type');
+            resolve({
+                status: 'OK',
+                data: allTypeProduct,
 
+            });
+
+        } catch (error) {
+            reject({
+                status: 'ERR',
+                message: error.message
+            });
+        }
+    });
+};
 module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
     getDetailProduct,
-    getAllDetailProduct // Thêm API getAllDetailProduct vào export
+    getAllDetailProduct,
+    getAllTypeProduct// Thêm API getAllDetailProduct vào export
 };
 

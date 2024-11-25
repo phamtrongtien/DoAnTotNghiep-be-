@@ -144,11 +144,23 @@ const getAllDetailProduct = async (req, res) => {
 //         });
 //     }
 // };
+const getAllTypeProduct = async (req, res) => {
+    try {
 
+        const result = await ProductService.getAllTypeProduct();
+
+        return res.status(200).json(result); // Trả về danh sách tất cả sản phẩm
+    } catch (e) {
+        return res.status(500).json({
+            message: e.message // Trả về thông điệp lỗi
+        });
+    }
+};
 module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
     getDetailProduct,
-    getAllDetailProduct // Thêm API getAllDetailProduct vào export
+    getAllDetailProduct,
+    getAllTypeProduct// Thêm API getAllDetailProduct vào export
 };

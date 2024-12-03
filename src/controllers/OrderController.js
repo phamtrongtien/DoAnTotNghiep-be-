@@ -9,7 +9,7 @@ const createOrder = async (req, res) => {
             shippingPrice,
             totalPrice,
             user,
-            shippingAddress, orderItems } = req.body;
+            shippingAddress, orderItems, isPaid } = req.body;
 
 
         // Kiểm tra các trường dữ liệu bắt buộc
@@ -67,7 +67,39 @@ const getDetailOrder = async (req, res) => {
         });
     }
 };
+const deleteOrder = async (req, res) => {
+    try {
+        const { id } = req.params; // Lấy id từ params
+        const data = req.body
+        const result = await OrderService.deleteOrder(id, data); // Gọi service để xóa đơn hàng
+
+        if (result.status === 'ERR') {
+            return res.status(404).json(result); // Nếu không tìm thấy đơn hàng
+        }
+
+        return res.status(200).json(result); // Trả về kết quả thành công
+    } catch (e) {
+        return res.status(500).json({
+            message: e.message || 'Internal Server Error'
+        });
+    }
+};
+const getAllOrder = async (req, res) => {
+    try {
+
+        // Chuyển limit thành undefined nếu không được cung cấp
+        const result = await OrderService.getAllOrder();
+
+        return res.status(200).json(result); // Trả về danh sách sản phẩm
+    } catch (e) {
+        return res.status(500).json({
+            message: e.message // Trả về thông điệp lỗi
+        });
+    }
+};
 module.exports = {
     createOrder,
     getDetailOrder,
+    deleteOrder,
+    getAllOrder
 };

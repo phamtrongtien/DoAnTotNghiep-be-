@@ -12,6 +12,7 @@ const createOrder = async (newOrder) => {
             user,
             shippingAddress,
             orderItems,
+            isPaid
         } = newOrder;
 
         // Kiểm tra đầu vào
@@ -32,7 +33,7 @@ const createOrder = async (newOrder) => {
                 {
                     $inc: {
                         countInStock: -order.amount,
-                        selled: order.amount,
+                        selled: +order.amount,
                     },
                 },
                 { new: true } // Trả về document mới nhất
@@ -93,9 +94,83 @@ const getDetailOrder = (id) => {
             });
         }
     });
-};
+}; const deleteOrder = async (orderId, data) => {
+    try {
+        // Tìm và xóa đơn hàng
+        const order = await Order.findByIdAndDelete(orderId);
+        if (!order) {
+            return { status: 'ERR', message: 'Order not found' };
+        }
 
+        console.log('Deleted order:', order);
+
+        // Lặp qua các sản phẩm trong đơn hàng để hoàn trả số lượng vào kho
+        const promises = data.orderItems.map(async (orderItem) => {
+            try {
+                const productData = await Product.findOneAndUpdate(
+                    {
+                        _id: orderItem.product,
+                        countInStock: { $gte: orderItem.amount }, // Kiểm tra số lượng trong kho đủ để trả lại
+                    },
+                    {
+                        $inc: {
+                            countInStock: +orderItem.amount,  // Tăng số lượng tồn kho
+                            selled: -orderItem.amount,       // Giảm số lượng đã bán
+                        },
+                    },
+                    { new: true } // Trả về document mới nhất
+                );
+
+                // Nếu sản phẩm không tồn tại hoặc không đủ số lượng
+                if (!productData) {
+                    throw new Error(`Product with ID ${orderItem.product} not available or insufficient quantity.`);
+                }
+
+                return productData;  // Trả về dữ liệu sản phẩm đã được cập nhật
+            } catch (error) {
+                console.error(`Error updating product with ID ${orderItem.product}:`, error);
+                return { status: 'ERR', message: error.message || 'Failed to update product stock' };
+            }
+        });
+
+        // Chờ cho tất cả các sản phẩm được xử lý
+        const productUpdates = await Promise.all(promises);
+
+        // Kiểm tra nếu có lỗi nào từ các cập nhật sản phẩm
+        const failedUpdates = productUpdates.filter(update => update.status === 'ERR');
+        if (failedUpdates.length > 0) {
+            return { status: 'ERR', message: 'Failed to update some products', data: failedUpdates };
+        }
+
+        // Trả về thông báo thành công
+        return { status: 'OK', message: 'Order deleted successfully and stock updated', data: order };
+
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        return { status: 'ERR', message: error.message || 'Failed to delete order' };
+    }
+};
+const getAllOrder = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const allOrder = await Order.find();
+            resolve({
+                status: 'OK',
+                data: allOrder,
+
+            });
+
+        } catch (error) {
+            reject({
+                status: 'ERR',
+                message: error.message
+            });
+        }
+    });
+};
 module.exports = {
     createOrder,
-    getDetailOrder
+    getDetailOrder,
+    deleteOrder,
+    getAllOrder
 };

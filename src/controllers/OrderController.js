@@ -97,9 +97,30 @@ const getAllOrder = async (req, res) => {
         });
     }
 };
+const updateDelivery = async (req, res) => {
+    const { orderId } = req.params;  // Get orderId from URL params
+    const { isDelivered } = req.body;  // Get isDelivered status from request body
+
+    try {
+        // Call service to update delivery status
+        const updatedOrder = await OrderService.updateDeliveryStatus(orderId, isDelivered);
+
+        if (!updatedOrder) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Order delivery status updated successfully',
+            order: updatedOrder,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: 'An error occurred', error: error.message });
+    }
+};
 module.exports = {
     createOrder,
     getDetailOrder,
     deleteOrder,
-    getAllOrder
+    getAllOrder,
+    updateDelivery
 };

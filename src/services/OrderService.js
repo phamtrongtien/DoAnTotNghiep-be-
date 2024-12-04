@@ -168,9 +168,29 @@ const getAllOrder = () => {
         }
     });
 };
+
+// Service function to update delivery status
+const updateDeliveryStatus = async (orderId, isDelivered) => {
+    try {
+        // Find the order by its ID and update the isDelivered status
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            { isDelivered: isDelivered },
+            { new: true } // Return the updated document
+        );
+
+        return order;
+    } catch (error) {
+        throw new Error('Error updating order delivery status: ' + error.message);
+    }
+};
+
+
+
 module.exports = {
     createOrder,
     getDetailOrder,
     deleteOrder,
-    getAllOrder
+    getAllOrder,
+    updateDeliveryStatus
 };

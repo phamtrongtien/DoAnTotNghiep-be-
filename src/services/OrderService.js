@@ -99,7 +99,7 @@ const getDetailOrder = (id) => {
         // Tìm và xóa đơn hàng
         const order = await Order.findByIdAndDelete(orderId);
         if (!order) {
-            return { status: 'ERR', message: 'Order not found' };
+            return { status: 'ERR', message: 'Order not found' };  // Nếu không tìm thấy đơn hàng
         }
 
         console.log('Deleted order:', order);
@@ -139,17 +139,29 @@ const getDetailOrder = (id) => {
         // Kiểm tra nếu có lỗi nào từ các cập nhật sản phẩm
         const failedUpdates = productUpdates.filter(update => update.status === 'ERR');
         if (failedUpdates.length > 0) {
-            return { status: 'ERR', message: 'Failed to update some products', data: failedUpdates };
+            return {
+                status: 'ERR',
+                message: 'Failed to update some products',
+                data: failedUpdates
+            };
         }
 
         // Trả về thông báo thành công
-        return { status: 'OK', message: 'Order deleted successfully and stock updated', data: order };
+        return {
+            status: 'OK',
+            message: 'Order deleted successfully and stock updated',
+            data: order
+        };
 
     } catch (error) {
         console.error('Error deleting order:', error);
-        return { status: 'ERR', message: error.message || 'Failed to delete order' };
+        return {
+            status: 'ERR',
+            message: error.message || 'Failed to delete order'
+        };
     }
 };
+
 const getAllOrder = () => {
     return new Promise(async (resolve, reject) => {
         try {

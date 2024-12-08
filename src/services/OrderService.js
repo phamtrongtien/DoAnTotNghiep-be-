@@ -94,15 +94,21 @@ const getDetailOrder = (id) => {
             });
         }
     });
-}; const deleteOrder = async (orderId, data) => {
+};
+const deleteOrder = async (orderId, data) => {
     try {
-        // Tìm và xóa đơn hàng
-        const order = await Order.findByIdAndDelete(orderId);
+        // Tìm đơn hàng theo ID và cập nhật trạng thái hủy đơn (isCancel: true)
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            { isCancel: true },
+            { new: true } // Trả về document mới nhất sau khi cập nhật
+        );
+
         if (!order) {
             return { status: 'ERR', message: 'Order not found' };  // Nếu không tìm thấy đơn hàng
         }
 
-        console.log('Deleted order:', order);
+        console.log('Cancelled order:', order);
 
         // Lặp qua các sản phẩm trong đơn hàng để hoàn trả số lượng vào kho
         const promises = data.orderItems.map(async (orderItem) => {
@@ -149,18 +155,19 @@ const getDetailOrder = (id) => {
         // Trả về thông báo thành công
         return {
             status: 'OK',
-            message: 'Order deleted successfully and stock updated',
+            message: 'Order cancelled successfully and stock updated',
             data: order
         };
 
     } catch (error) {
-        console.error('Error deleting order:', error);
+        console.error('Error cancelling order:', error);
         return {
             status: 'ERR',
-            message: error.message || 'Failed to delete order'
+            message: error.message || 'Failed to cancel order'
         };
     }
 };
+
 
 const getAllOrder = () => {
     return new Promise(async (resolve, reject) => {

@@ -31,7 +31,10 @@ const orderSchema = new mongoose.Schema({
     paidAt: { type: Date },
     isDelivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
-    cancle: { type: Boolean, default: false },
+    isCancel: { type: Boolean, default: false },
+    canceledAt: { type: Date, required: false },
+    cancellationReason: { type: String, required: false },
+    isRefunded: { type: Boolean, default: false }, // Trạng thái hoàn tiền
 }, {
     timestamp: true,
 }

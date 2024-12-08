@@ -47,18 +47,27 @@ const authUserMiddleware = (req, res, next) => {
         });
     }
 
-    // Tách token
-    const token = req.headers.token.split(' ')[1];
+    // Tách token, kiểm tra nếu token đúng định dạng 'Bearer <token>'
+    const tokenParts = req.headers.token.split(' ');
+    if (tokenParts.length !== 2) {
+        return res.status(401).json({
+            message: 'Invalid token format',
+            status: 'ERROR'
+        });
+    }
+
+    const token = tokenParts[1];
     const userId = req.params.id;
 
     jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
         if (err) {
             return res.status(401).json({
-                message: 'Authentication failed',
+                message: 'Authentication failed: Invalid token',
                 status: 'ERROR'
             });
         }
 
+        // Kiểm tra quyền truy cập
         if ((user.isAdmin || user.id === userId)) {
             console.log('User access granted');
             next();
@@ -70,6 +79,7 @@ const authUserMiddleware = (req, res, next) => {
         }
     });
 };
+
 
 module.exports = {
     authMiddleware,

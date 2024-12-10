@@ -10,6 +10,8 @@ const productSchema = new mongoose.Schema({
     description: { type: String },
     discount: { type: Number },
     selled: { type: Number },
+    reviews: { type: Number, default: 0 },
+    userRatings: { type: Map, of: Number }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

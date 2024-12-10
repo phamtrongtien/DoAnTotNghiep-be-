@@ -95,6 +95,48 @@ const updateProduct = (id, updatedProduct) => {
         }
     });
 };
+const updateRating = async (productId, newRating, userId) => {
+    try {
+        // Tìm sản phẩm theo ID
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            throw new Error('Sản phẩm không tìm thấy');
+        }
+
+        // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
+        if (product.userRatings.has(userId)) {
+            throw new Error('Người dùng đã đánh giá sản phẩm này rồi');
+        }
+
+        // Lấy thông tin số lượng đánh giá và tổng điểm hiện tại
+        const totalReviews = product.reviews || 0;
+        const totalRating = product.rating || 0;
+
+        // Cập nhật tổng điểm và số lượng đánh giá
+        const updatedTotalRating = totalRating * totalReviews + newRating;
+        const updatedTotalReviews = totalReviews + 1;
+
+        // Tính toán rating trung bình mới
+        const averageRating = updatedTotalRating / updatedTotalReviews;
+
+        // Cập nhật lại thông tin rating và số lượng đánh giá
+        product.rating = averageRating;
+        product.reviews = updatedTotalReviews;
+
+        // Cập nhật userRatings (thêm rating của userId)
+        product.userRatings.set(userId, newRating);  // Sử dụng .set() để thêm giá trị mới vào Map
+
+        // Lưu lại thay đổi
+        await product.save();
+
+        return product;
+    } catch (error) {
+        console.error('Error updating rating:', error);
+        throw new Error(error.message);
+    }
+};
+
 
 const deleteProduct = (id) => {
     return new Promise(async (resolve, reject) => {
@@ -252,6 +294,7 @@ module.exports = {
     deleteProduct,
     getDetailProduct,
     getAllDetailProduct,
+    updateRating,
     getAllTypeProduct// Thêm API getAllDetailProduct vào export
 };
 

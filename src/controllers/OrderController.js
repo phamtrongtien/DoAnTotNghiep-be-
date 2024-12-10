@@ -71,6 +71,7 @@ const deleteOrder = async (req, res) => {
     try {
         const { id } = req.params; // Lấy id từ params
         const data = req.body
+        console.log(data)
         const result = await OrderService.deleteOrder(id, data); // Gọi service để xóa đơn hàng
 
         if (result.status === 'ERR') {

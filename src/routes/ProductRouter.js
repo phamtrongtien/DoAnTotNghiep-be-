@@ -8,5 +8,6 @@ router.delete('/delete/:id', authMiddleware, productController.deleteProduct);
 router.get('/details/:id', productController.getDetailProduct);
 router.get('/alldetails', productController.getAllDetailProduct);
 router.get('/get-all-type', productController.getAllTypeProduct);
+router.put('/update-rating/:id', productController.updateProductRating);
 
 module.exports = router;

@@ -67,6 +67,43 @@ const updateProduct = async (req, res) => {
         });
     }
 };
+const updateProductRating = async (req, res) => {
+    try {
+        const { id } = req.params;  // Lấy ID sản phẩm từ params
+        const { rating } = req.body;  // Lấy rating từ body
+        const userId = req.body.userId;  // Giả sử ID người dùng có sẵn từ middleware xác thực
+
+        // Kiểm tra rating có hợp lệ không
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Rating phải nằm trong khoảng từ 1 đến 5'
+            });
+        }
+
+        // Gọi hàm service để xử lý việc cập nhật rating
+        const result = await ProductService.updateRating(id, rating, userId);
+
+        if (!result) {
+            return res.status(404).json({
+                status: 'ERR',
+                message: 'Sản phẩm không tìm thấy'
+            });
+        }
+
+        return res.status(200).json({
+            status: 'SUCCESS',
+            message: 'Cập nhật đánh giá sản phẩm thành công',
+            data: result
+        });
+    } catch (e) {
+        return res.status(500).json({
+            status: 'ERR',
+            message: e.message
+        });
+    }
+};
+
 const deleteProduct = async (req, res) => {
     try {
         const productId = req.params.id;
@@ -162,5 +199,6 @@ module.exports = {
     deleteProduct,
     getDetailProduct,
     getAllDetailProduct,
+    updateProductRating,
     getAllTypeProduct// Thêm API getAllDetailProduct vào export
 };

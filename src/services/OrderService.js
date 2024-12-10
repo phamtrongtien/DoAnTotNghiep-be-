@@ -108,49 +108,33 @@ const deleteOrder = async (orderId, data) => {
             return { status: 'ERR', message: 'Order not found' };  // Nếu không tìm thấy đơn hàng
         }
 
-        console.log('Cancelled order:', order);
+
 
         // Lặp qua các sản phẩm trong đơn hàng để hoàn trả số lượng vào kho
-        const promises = data.orderItems.map(async (orderItem) => {
-            try {
-                const productData = await Product.findOneAndUpdate(
-                    {
-                        _id: orderItem.product,
-                        countInStock: { $gte: orderItem.amount }, // Kiểm tra số lượng trong kho đủ để trả lại
+        const promises = order.orderItems.map(async (order) => {
+            const productData = await Product.findOneAndUpdate(
+                {
+                    _id: order.product,
+                    countInStock: { $gte: order.amount }, // Sửa lỗi `amount`
+                },
+                {
+                    $inc: {
+                        countInStock: +order.amount,
+                        selled: -order.amount,
                     },
-                    {
-                        $inc: {
-                            countInStock: +orderItem.amount,  // Tăng số lượng tồn kho
-                            selled: -orderItem.amount,       // Giảm số lượng đã bán
-                        },
-                    },
-                    { new: true } // Trả về document mới nhất
-                );
+                },
+                { new: true } // Trả về document mới nhất
+            );
 
-                // Nếu sản phẩm không tồn tại hoặc không đủ số lượng
-                if (!productData) {
-                    throw new Error(`Product with ID ${orderItem.product} not available or insufficient quantity.`);
-                }
-
-                return productData;  // Trả về dữ liệu sản phẩm đã được cập nhật
-            } catch (error) {
-                console.error(`Error updating product with ID ${orderItem.product}:`, error);
-                return { status: 'ERR', message: error.message || 'Failed to update product stock' };
+            if (!productData) {
+                throw new Error(`Product with ID ${order.product} not available or insufficient quantity.`);
             }
+
+            return productData;
         });
 
         // Chờ cho tất cả các sản phẩm được xử lý
-        const productUpdates = await Promise.all(promises);
-
-        // Kiểm tra nếu có lỗi nào từ các cập nhật sản phẩm
-        const failedUpdates = productUpdates.filter(update => update.status === 'ERR');
-        if (failedUpdates.length > 0) {
-            return {
-                status: 'ERR',
-                message: 'Failed to update some products',
-                data: failedUpdates
-            };
-        }
+        await Promise.all(promises);
 
         // Trả về thông báo thành công
         return {

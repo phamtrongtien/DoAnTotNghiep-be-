@@ -70,8 +70,7 @@ const updateProduct = async (req, res) => {
 const updateProductRating = async (req, res) => {
     try {
         const { id } = req.params;  // Lấy ID sản phẩm từ params
-        const { rating } = req.body;  // Lấy rating từ body
-        const userId = req.body.userId;  // Giả sử ID người dùng có sẵn từ middleware xác thực
+        const { rating, userId } = req.body;  // Lấy rating từ body
 
         // Kiểm tra rating có hợp lệ không
         if (rating < 1 || rating > 5) {

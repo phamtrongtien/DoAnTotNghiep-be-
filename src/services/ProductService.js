@@ -104,6 +104,11 @@ const updateRating = async (productId, newRating, userId) => {
             throw new Error('Sản phẩm không tìm thấy');
         }
 
+        // Nếu userRatings chưa được khởi tạo, khởi tạo nó là một Map rỗng
+        if (!product.userRatings) {
+            product.userRatings = new Map();
+        }
+
         // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
         if (product.userRatings.has(userId)) {
             throw new Error('Người dùng đã đánh giá sản phẩm này rồi');

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const Notification = require('./notification');
 const orderSchema = new mongoose.Schema({
     orderItems: [
         {
@@ -39,6 +39,20 @@ const orderSchema = new mongoose.Schema({
     timestamp: true,
 }
 );
-
+orderSchema.post('findOneAndUpdate', async function (doc) {
+    if (doc.isDelivered === true) {
+        try {
+            await Notification.create({
+                user: doc.user,
+                title: 'Đơn hàng đã giao thành công',
+                message: `Đơn hàng của bạn đã được giao vào ngày. Cảm ơn bạn đã mua sắm tại cửa hàng của chúng tôi!`,
+                type: 'success'
+            });
+            console.log('Thông báo đã được tạo.');
+        } catch (error) {
+            console.error('Lỗi khi tạo thông báo:', error.message);
+        }
+    }
+});
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

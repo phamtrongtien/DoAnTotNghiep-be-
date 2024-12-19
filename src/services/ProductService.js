@@ -256,6 +256,7 @@ const getAllDetailProduct = (limit, page = 0, sort, filter) => {
             // Nếu không có limit, chỉ lấy tất cả sản phẩm phù hợp
             const totalProduct = await Product.countDocuments(query);
             const allProduct = await Product.find(query)
+                // .select('-image')
                 .sort(sortOptions)
                 .limit(limit || totalProduct) // Nếu limit không tồn tại, lấy toàn bộ sản phẩm
                 .skip(page * (limit || totalProduct)); // Tương tự cho skip

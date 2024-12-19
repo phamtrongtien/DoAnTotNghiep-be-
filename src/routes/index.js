@@ -3,6 +3,7 @@ const ProductRouter = require('./ProductRouter')
 const OrderRouter = require('./OrderRouter')
 const PaymentRouter = require('./PaymentRouter')
 const feedBackRouter = require('./feedBackRouter')
+const notificationRouter = require('./notification')
 
 const routes = (app) => {
     // Định nghĩa route cho trang user
@@ -11,6 +12,7 @@ const routes = (app) => {
     app.use('/api/product', ProductRouter);
     app.use('/api/payment', PaymentRouter)
     app.use('/api/feedback', feedBackRouter)
+    app.use('/api/notification', notificationRouter)
 
 };
 

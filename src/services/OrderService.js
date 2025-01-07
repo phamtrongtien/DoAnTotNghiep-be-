@@ -188,6 +188,25 @@ const updateDeliveryStatus = async (orderId, isDelivered) => {
     }
 };
 
+const updatePaymentStatus = async (orderId, isPaid) => {
+    try {
+        // Tìm đơn hàng theo orderId
+        const order = await Order.findById(orderId);
+        if (!order) {
+            throw new Error('Order not found');
+        }
+
+        // Cập nhật trạng thái thanh toán
+        order.isPaid = isPaid;
+
+        // Lưu lại đơn hàng với trạng thái mới
+        await order.save();
+
+        return order;
+    } catch (error) {
+        throw new Error(`Error updating payment status: ${error.message}`);
+    }
+};
 
 
 module.exports = {
@@ -195,5 +214,6 @@ module.exports = {
     getDetailOrder,
     deleteOrder,
     getAllOrder,
-    updateDeliveryStatus
+    updateDeliveryStatus,
+    updatePaymentStatus
 };

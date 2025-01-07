@@ -8,8 +8,13 @@ const userSchema = new mongoose.Schema({
     phone: { type: Number, required: true },
     address: { type: String, require: true },
     avatar: { type: String },
-    city: { type: String }
-
+    city: { type: String },
+    isEmployeeWarehouse: {
+        type: Boolean, default: false
+    },
+    isEmployeeSale: {
+        type: Boolean, default: false
+    }
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

@@ -67,6 +67,7 @@ const getDetailOrder = async (req, res) => {
         });
     }
 };
+
 const deleteOrder = async (req, res) => {
     try {
         const { id } = req.params; // Lấy id từ params
@@ -85,7 +86,26 @@ const deleteOrder = async (req, res) => {
         });
     }
 };
+const updatePaymentStatus = async (req, res) => {
+    const { orderId } = req.params; // Lấy orderId từ tham số URL
+    const { isPaid } = req.body; // Lấy trạng thái thanh toán từ body của request
 
+    try {
+        // Gọi service để cập nhật trạng thái thanh toán
+        const updatedOrder = await OrderService.updatePaymentStatus(orderId, isPaid);
+
+        // Trả về phản hồi thành công với dữ liệu đơn hàng đã được cập nhật
+        res.status(200).json({
+            message: 'Payment status updated successfully',
+            order: updatedOrder,
+        });
+    } catch (error) {
+        // Trả về lỗi nếu có
+        res.status(400).json({
+            message: error.message,
+        });
+    }
+};
 const getAllOrder = async (req, res) => {
     try {
 
@@ -124,5 +144,6 @@ module.exports = {
     getDetailOrder,
     deleteOrder,
     getAllOrder,
-    updateDelivery
+    updateDelivery,
+    updatePaymentStatus
 };
